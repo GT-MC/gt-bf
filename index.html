@@ -8,121 +8,189 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
 
 :root{
-  --red:#ff2200;       --red-glow:rgba(255,34,0,0.85);   --red-dim:#1a0400;
-  --green:#00ff55;     --green-glow:rgba(0,255,85,0.85);  --green-dim:#001a08;
-  --yellow:#ffcc00;    --yellow-glow:rgba(255,204,0,0.85);--yellow-dim:#1a1200;
+  --red:#ff2200;       --red-glow:rgba(255,34,0,0.85);
+  --green:#00ff55;     --green-glow:rgba(0,255,85,0.85);
+  --yellow:#ffcc00;    --yellow-glow:rgba(255,204,0,0.85);
   --amber:#ffaa00;     --amber-glow:rgba(255,170,0,0.8);
-  --blue:#44aaff;      --blue-glow:rgba(68,170,255,0.8);
-  --panel:#111;        --panel2:#181818;
-  --chrome:#888;
+  --chrome-hi:#d0d0d0; --chrome-lo:#555;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-html,body{width:100%;min-height:100vh;background:#050505;font-family:'Share Tech Mono',monospace;overflow-x:hidden;color:#ccc;}
+html,body{width:100%;min-height:100vh;background:#050505;font-family:'Share Tech Mono',monospace;overflow-x:hidden;color:#ccc;transition:filter 0.5s;}
+
+/* NIGHT MODE */
+body.night{filter:brightness(0.38) sepia(0.2);}
+
+/* MAIN POWER OFF — hide everything except present clock and switches */
+body.poweroff .cockpit-inner{display:none;}
+
+/* present-clock strip — always visible regardless of switches */
+.present-always{
+  background:linear-gradient(180deg,#1a1a1a 0%,#101010 100%);
+  border:2px solid #333;border-radius:5px;
+  padding:8px 14px 6px;
+  box-shadow:0 0 0 1px #555,0 0 0 3px #111,inset 0 1px 3px rgba(255,255,255,0.04);
+}
+.present-always .row-lbl{
+  font-family:'Orbitron',monospace;font-size:6px;letter-spacing:3px;
+  text-align:center;padding-top:4px;border-top:1px solid #111;margin-top:3px;
+  color:var(--green);text-shadow:0 0 6px var(--green);
+}
 
 /* scanlines */
 body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,0.12) 0,rgba(0,0,0,0.12) 1px,transparent 1px,transparent 3px);pointer-events:none;z-index:9000;}
 
 /* flash + lightning */
-#flashEl{position:fixed;inset:0;background:#fff;z-index:9900;pointer-events:none;opacity:0;transition:opacity 0.05s;}
+#flashEl{position:fixed;inset:0;background:#fff;z-index:9900;pointer-events:none;opacity:0;}
 #lCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:9800;pointer-events:none;display:none;}
 
-/* time travel overlay */
+/* TT overlay */
 #ttOverlay{position:fixed;inset:0;z-index:9950;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,20,0.97);}
 .tt-msg{font-family:'Orbitron',monospace;font-size:clamp(22px,5vw,52px);font-weight:900;letter-spacing:10px;color:#fff;text-shadow:0 0 30px #fff,0 0 80px #aaaaff;animation:ttpulse 0.25s infinite alternate;}
 @keyframes ttpulse{from{opacity:.7}to{opacity:1;text-shadow:0 0 60px #fff,0 0 120px #6666ff;}}
 .tt-sub{font-family:'Orbitron',monospace;font-size:clamp(9px,2vw,14px);letter-spacing:6px;color:#8888ff;margin-top:10px;}
 .tt-yr{font-family:'Orbitron',monospace;font-size:clamp(44px,11vw,100px);font-weight:900;color:var(--amber);text-shadow:0 0 40px var(--amber),0 0 80px #ff6600;margin-top:18px;letter-spacing:16px;}
 
-/* ═══ LAYOUT ═══ */
+/* ═══════════════ SWITCH BANK ═══════════════ */
+.switch-bank{
+  display:flex;align-items:flex-end;justify-content:center;gap:28px;
+  padding:14px 20px 10px;
+  background:linear-gradient(180deg,#1a1612 0%,#0f0d0a 100%);
+  border:2px solid #3a3020;
+  border-radius:6px;
+  box-shadow:0 0 0 1px #5a4a30,0 0 30px rgba(0,0,0,0.9),inset 0 1px 0 rgba(255,255,255,0.04);
+  position:relative;
+}
+.switch-bank::before{
+  content:'CONTROL PANEL';
+  position:absolute;top:5px;left:50%;transform:translateX(-50%);
+  font-family:'Orbitron',monospace;font-size:7px;letter-spacing:5px;color:#3a2a10;
+  white-space:nowrap;
+}
+
+.sw-unit{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.sw-top-lbl{font-family:'Orbitron',monospace;font-size:6px;letter-spacing:2px;color:#2a2010;text-align:center;line-height:1.4;}
+.sw-top-lbl.lit-red  {color:var(--red);text-shadow:0 0 8px var(--red);}
+.sw-top-lbl.lit-green{color:var(--green);text-shadow:0 0 8px var(--green);}
+.sw-top-lbl.lit-amber{color:var(--amber);text-shadow:0 0 8px var(--amber);}
+
+/* Retro toggle housing — metal plate with guard */
+.sw-housing{
+  position:relative;
+  width:34px;height:68px;
+  background:linear-gradient(180deg,#2a2218 0%,#181208 100%);
+  border:2px solid #3a3020;
+  border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,0.8),2px 3px 8px rgba(0,0,0,0.7);
+  cursor:pointer;
+}
+/* Guard notches at top/bottom */
+.sw-housing::before,.sw-housing::after{
+  content:'';position:absolute;left:50%;transform:translateX(-50%);
+  width:10px;height:4px;
+  background:linear-gradient(180deg,#4a3a20,#2a2010);
+  border:1px solid #5a4a28;border-radius:1px;
+}
+.sw-housing::before{top:5px;}
+.sw-housing::after{bottom:5px;}
+
+/* The actual lever */
+.sw-lever{
+  width:14px;height:26px;
+  background:linear-gradient(135deg,var(--chrome-hi) 0%,#888 45%,var(--chrome-lo) 100%);
+  border-radius:3px;
+  border:1px solid #aaa;
+  box-shadow:0 2px 5px rgba(0,0,0,0.7),inset 0 1px 0 rgba(255,255,255,0.4),inset 0 -1px 0 rgba(0,0,0,0.3);
+  transform:translateY(10px); /* OFF = down */
+  transition:transform 0.18s cubic-bezier(.4,0,.2,1),box-shadow 0.18s;
+  position:relative;
+}
+/* knurling lines on lever */
+.sw-lever::before{
+  content:'';position:absolute;inset:4px 2px;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,0.15) 0,rgba(0,0,0,0.15) 1px,transparent 1px,transparent 3px);
+  border-radius:2px;
+}
+.sw-lever.on{
+  transform:translateY(-10px);
+}
+.sw-lever.on.col-green{box-shadow:0 2px 10px var(--green-glow),inset 0 1px 0 rgba(255,255,255,0.4);}
+.sw-lever.on.col-red  {box-shadow:0 2px 10px var(--red-glow),inset 0 1px 0 rgba(255,255,255,0.4);}
+.sw-lever.on.col-amber{box-shadow:0 2px 10px var(--amber-glow),inset 0 1px 0 rgba(255,255,255,0.4);}
+
+/* LED indicator below switch */
+.sw-led{width:8px;height:8px;border-radius:50%;background:#0d0d0d;border:1px solid #222;transition:all 0.3s;}
+.sw-led.on-green{background:var(--green);box-shadow:0 0 8px var(--green-glow);animation:ledp 1.8s ease-in-out infinite;}
+.sw-led.on-red  {background:var(--red);  box-shadow:0 0 8px var(--red-glow);  animation:ledp 1.8s ease-in-out infinite;}
+.sw-led.on-amber{background:var(--amber);box-shadow:0 0 8px var(--amber-glow);animation:ledp 1.8s ease-in-out infinite;}
+@keyframes ledp{0%,100%{opacity:1}50%{opacity:.55}}
+
+.sw-bot-lbl{font-family:'Orbitron',monospace;font-size:6px;letter-spacing:2px;color:#2a2010;text-align:center;line-height:1.4;}
+.sw-bot-lbl.active{color:#5a4a20;}
+
+/* ═══════════════ LAYOUT ═══════════════ */
 .cockpit{max-width:980px;margin:0 auto;padding:14px;display:flex;flex-direction:column;gap:12px;}
+.cockpit-inner{display:flex;flex-direction:column;gap:12px;transition:filter 0.4s;}
 
 .hdr{text-align:center;font-family:'Orbitron',monospace;font-size:clamp(10px,1.6vw,16px);letter-spacing:8px;color:var(--amber);text-shadow:0 0 20px var(--amber),0 0 50px #ff6600;padding:6px 0;border-bottom:1px solid #1e1e1e;}
 
 /* ═══ TC PANEL ═══ */
 .tc-panel{background:linear-gradient(180deg,#1e1e1e 0%,#121212 100%);border:2px solid #444;border-radius:5px;padding:14px 14px 12px;box-shadow:0 0 0 1px #666,0 0 0 3px #1a1a1a,inset 0 1px 3px rgba(255,255,255,0.05),0 8px 30px rgba(0,0,0,0.9);}
-.tc-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.tc-title{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:4px;color:#444;}
-
-/* FLIP SWITCH */
-.flip-wrap{display:flex;align-items:center;gap:10px;}
-.flip-lbl{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;width:28px;}
-.flip-lbl.off{color:#333;}
-.flip-lbl.on{color:var(--green);text-shadow:0 0 6px var(--green);}
-.flip-housing{
-  width:22px;height:52px;background:linear-gradient(135deg,#2a2a2a,#111);
-  border:2px solid #333;border-radius:4px;
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;position:relative;
-  box-shadow:2px 2px 6px rgba(0,0,0,0.7),inset 0 1px 0 rgba(255,255,255,0.06);
-}
-.flip-housing::before,.flip-housing::after{content:'';position:absolute;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:#1a1a1a;border:1px solid #222;}
-.flip-housing::before{top:6px;}
-.flip-housing::after{bottom:6px;}
-.flip-lever{
-  width:12px;height:20px;
-  background:linear-gradient(135deg,#bbb 0%,#666 50%,#999 100%);
-  border-radius:3px;border:1px solid #999;
-  position:relative;
-  transform:translateY(8px);/* OFF = down */
-  transition:transform 0.2s cubic-bezier(.4,0,.2,1),box-shadow 0.2s;
-  box-shadow:0 2px 4px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.3);
-}
-.flip-lever.on{
-  transform:translateY(-8px);
-  box-shadow:0 2px 8px var(--green-glow),inset 0 1px 0 rgba(255,255,255,0.3);
-}
+.tc-toptitle{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:4px;color:#444;margin-bottom:10px;text-align:center;}
 
 /* DISPLAY ROWS */
-.disp-row{background:#080808;border:2px solid #0f0f0f;border-radius:3px;padding:7px 10px 5px;margin-bottom:7px;box-shadow:inset 0 2px 8px rgba(0,0,0,0.9);position:relative;}
+.disp-row{background:#080808;border:2px solid #0f0f0f;border-radius:3px;padding:7px 10px 5px;margin-bottom:7px;box-shadow:inset 0 2px 8px rgba(0,0,0,0.9);transition:opacity 0.3s;}
 .disp-row.off-state{opacity:0.05;pointer-events:none;}
 .row-lbl{font-family:'Orbitron',monospace;font-size:6px;letter-spacing:3px;text-align:center;padding-top:4px;border-top:1px solid #111;margin-top:3px;}
 .row-dest .row-lbl{color:var(--red);text-shadow:0 0 6px var(--red);}
 .row-pres .row-lbl{color:var(--green);text-shadow:0 0 6px var(--green);}
 .row-dep  .row-lbl{color:var(--yellow);text-shadow:0 0 6px var(--yellow);}
 
-/* 7-SEG STYLE ROWS (dest + dep) */
+/* 7-SEG ROWS */
 .seg-wrap{display:flex;align-items:flex-end;justify-content:center;gap:3px;}
 .seg-group{display:flex;flex-direction:column;align-items:center;gap:2px;}
-.seg-lbl{font-size:5px;letter-spacing:2px;color:#1f1f1f;text-align:center;}
+.seg-lbl{font-size:5px;letter-spacing:2px;text-align:center;}
 .row-dest .seg-lbl{color:#330800;}
+.row-pres .seg-lbl{color:#003310;}
 .row-dep  .seg-lbl{color:#332200;}
 .seg-digits{display:flex;gap:2px;}
-.segdig{
-  font-family:'Share Tech Mono',monospace;font-size:clamp(17px,3.2vw,28px);font-weight:900;
-  width:clamp(14px,2.8vw,23px);height:clamp(25px,4.5vw,38px);
-  display:flex;align-items:center;justify-content:center;border-radius:2px;
-}
-.row-dest .segdig{color:var(--red);text-shadow:0 0 8px var(--red-glow),0 0 16px var(--red-glow);background:#130200;}
+.segdig{font-family:'Share Tech Mono',monospace;font-size:clamp(17px,3.2vw,28px);font-weight:900;width:clamp(14px,2.8vw,23px);height:clamp(25px,4.5vw,38px);display:flex;align-items:center;justify-content:center;border-radius:2px;}
+.row-dest .segdig{color:var(--red);  text-shadow:0 0 8px var(--red-glow),  0 0 16px var(--red-glow);  background:#130200;}
+.row-pres .segdig{color:var(--green);text-shadow:0 0 8px var(--green-glow),0 0 16px var(--green-glow);background:#001408;}
 .row-dep  .segdig{color:var(--yellow);text-shadow:0 0 8px var(--yellow-glow),0 0 16px var(--yellow-glow);background:#130e00;}
-.segsep{font-size:clamp(12px,2.5vw,20px);margin-bottom:4px;opacity:0.5;}
+.segsep{font-size:clamp(12px,2.5vw,20px);margin-bottom:4px;opacity:0.55;}
 .row-dest .segsep{color:var(--red);}
+.row-pres .segsep{color:var(--green);}
 .row-dep  .segsep{color:var(--yellow);}
 .ampm-box{display:flex;flex-direction:column;gap:2px;margin-bottom:4px;}
-.ampm-box span{font-size:7px;letter-spacing:1px;padding:1px 2px;border-radius:2px;color:#111;}
-.row-dest .ampm-box span.lit{color:var(--red);text-shadow:0 0 5px var(--red-glow);background:#130200;}
+.ampm-box span{font-size:7px;letter-spacing:1px;padding:1px 2px;border-radius:2px;}
+.row-dest .ampm-box span{color:#1a0400;}
+.row-dest .ampm-box span.lit{color:var(--red);  text-shadow:0 0 5px var(--red-glow);  background:#130200;}
+.row-pres .ampm-box span{color:#001a08;}
+.row-pres .ampm-box span.lit{color:var(--green);text-shadow:0 0 5px var(--green-glow);background:#001408;}
+.row-dep  .ampm-box span{color:#1a1200;}
 .row-dep  .ampm-box span.lit{color:var(--yellow);text-shadow:0 0 5px var(--yellow-glow);background:#130e00;}
-
-/* DOT-MATRIX CLOCK (present time) */
-#dotCanvas{display:block;margin:0 auto;}
 
 /* ═══ BOTTOM GRID ═══ */
 .bottom{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
 
-/* ═══ SHARED PANEL STYLE ═══ */
+/* SHARED PANEL */
 .sub-panel{background:linear-gradient(180deg,#181818,#0e0e0e);border:2px solid #2a2a2a;border-radius:5px;padding:10px 10px 12px;box-shadow:inset 0 2px 6px rgba(0,0,0,0.7);display:flex;flex-direction:column;align-items:center;gap:8px;}
 .sub-title{font-family:'Orbitron',monospace;font-size:6px;letter-spacing:3px;color:#333;align-self:stretch;text-align:center;}
 
 /* ═══ SPEEDOMETER ═══ */
-.speedo-wrap{position:relative;width:100%;}
 #speedoCanvas{display:block;width:100%;height:auto;}
-.speed-digital{
-  font-family:'Orbitron',monospace;font-size:clamp(26px,5vw,40px);font-weight:900;
-  color:#fff;text-shadow:0 0 12px #fff;text-align:center;line-height:1;
-  letter-spacing:2px;margin-top:-4px;
-}
+.speed-digital{font-family:'Orbitron',monospace;font-size:clamp(26px,5vw,40px);font-weight:900;color:#fff;text-shadow:0 0 12px #fff;text-align:center;line-height:1;letter-spacing:2px;margin-top:-4px;}
 .speed-unit{font-size:8px;letter-spacing:4px;color:#444;display:block;text-align:center;}
 
-/* ═══ ENGINE + FLUX ═══ */
+/* FLUX */
+.flux-wrap{width:100%;display:flex;flex-direction:column;align-items:center;gap:4px;}
+#fluxCanvas{display:block;}
+.flux-status{font-family:'Orbitron',monospace;font-size:6px;letter-spacing:3px;color:#222;}
+.flux-status.active{color:var(--amber);text-shadow:0 0 8px var(--amber);animation:fluxb .3s infinite alternate;}
+@keyframes fluxb{from{opacity:.6}to{opacity:1}}
+
+/* ENGINE */
 .ign-row{display:flex;align-items:center;gap:12px;}
 .ign-lbl{font-size:7px;letter-spacing:2px;color:#333;}
 .key-housing{width:48px;height:48px;border-radius:50%;background:radial-gradient(circle,#282828 40%,#111 100%);border:2px solid #333;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s;box-shadow:0 3px 8px rgba(0,0,0,0.7);}
@@ -131,8 +199,8 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 
 .start-btn{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;padding:9px 16px;border-radius:3px;border:2px solid #222;background:#0d0d0d;color:#333;cursor:not-allowed;transition:all 0.2s;box-shadow:0 3px 0 #080808;}
 .start-btn.ready{border-color:#664400;color:var(--amber);cursor:pointer;box-shadow:0 3px 0 #080808,0 0 10px rgba(255,170,0,0.2);}
-.start-btn.running{border-color:#004422;color:var(--green);cursor:pointer;animation:engpulse 0.5s infinite alternate;}
-@keyframes engpulse{from{box-shadow:0 3px 0 #080808,0 0 6px rgba(0,255,85,0.2);}to{box-shadow:0 3px 0 #080808,0 0 18px rgba(0,255,85,0.5);}}
+.start-btn.running{border-color:#004422;color:var(--green);cursor:pointer;animation:engp .5s infinite alternate;}
+@keyframes engp{from{box-shadow:0 3px 0 #080808,0 0 6px rgba(0,255,85,0.2);}to{box-shadow:0 3px 0 #080808,0 0 18px rgba(0,255,85,0.5);}}
 
 .bar-row{width:100%;display:flex;flex-direction:column;gap:2px;}
 .bar-lbl{font-size:6px;letter-spacing:2px;color:#2a2a2a;text-align:right;}
@@ -140,55 +208,70 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .bar-fill{height:100%;width:0%;border-radius:3px;transition:width 0.08s;}
 #rpmFill{background:linear-gradient(90deg,#004400,#00ff55);}
 
-/* ACCEL / BRAKE */
 .drive-btns{display:flex;flex-direction:column;gap:5px;width:100%;}
 .drive-btn{font-family:'Orbitron',monospace;font-size:7px;letter-spacing:2px;padding:9px 0;border-radius:3px;border:2px solid;background:#0d0d0d;color:#333;cursor:not-allowed;text-align:center;user-select:none;box-shadow:0 3px 0 #050505;transition:all 0.1s;}
 .drive-btn.ready{cursor:pointer;}
-.drive-btn.accel-btn{border-color:#224400;}
-.drive-btn.accel-btn.ready{color:#66cc00;border-color:#336600;box-shadow:0 3px 0 #050505,0 0 8px rgba(102,204,0,0.15);}
-.drive-btn.brake-btn{border-color:#330000;}
-.drive-btn.brake-btn.ready{color:#cc2200;border-color:#660000;box-shadow:0 3px 0 #050505,0 0 8px rgba(204,34,0,0.15);}
-.drive-btn:active.ready,.drive-btn.pressed{transform:translateY(2px);box-shadow:0 1px 0 #050505;}
+.accel-btn.ready{color:#66cc00;border-color:#336600 !important;box-shadow:0 3px 0 #050505,0 0 8px rgba(102,204,0,0.15);}
+.brake-btn.ready{color:#cc2200;border-color:#660000 !important;box-shadow:0 3px 0 #050505,0 0 8px rgba(204,34,0,0.15);}
+.accel-btn{border-color:#1a2200;}
+.brake-btn{border-color:#220000;}
+.drive-btn.pressed{transform:translateY(2px);box-shadow:0 1px 0 #050505 !important;}
 
-/* ═══ FLUX CAPACITOR ═══ */
-.flux-wrap{width:100%;display:flex;flex-direction:column;align-items:center;gap:4px;}
-#fluxCanvas{display:block;}
-.flux-status{font-family:'Orbitron',monospace;font-size:6px;letter-spacing:3px;color:#222;}
-.flux-status.active{color:var(--amber);text-shadow:0 0 8px var(--amber);animation:fluxblink 0.3s infinite alternate;}
-@keyframes fluxblink{from{opacity:.6}to{opacity:1;}}
-
-/* ═══ PLUTONIUM ═══ */
-.pluto-panel{width:100%;display:flex;flex-direction:column;gap:5px;}
-.pluto-title{font-size:6px;letter-spacing:3px;color:#333;font-family:'Orbitron',monospace;text-align:center;}
+/* PLUTONIUM */
 .cells{display:flex;gap:6px;justify-content:center;}
-.cell{width:26px;height:48px;border:2px solid #222;border-radius:3px;background:#080808;position:relative;overflow:hidden;display:flex;align-items:flex-end;}
-.cell-fill{width:100%;background:linear-gradient(180deg,#00ff44,#006622);border-radius:1px;transition:height 0.4s;position:relative;}
-.cell-fill::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.3);border-radius:1px;}
+.cell{width:26px;height:48px;border:2px solid #222;border-radius:3px;background:#080808;position:relative;overflow:hidden;display:flex;align-items:flex-end;transition:border-color 0.5s;}
+.cell.empty-cell{border-color:#111;}
+.cell-fill{width:100%;background:linear-gradient(180deg,#00ff44,#006622);border-radius:1px;transition:height 0.5s,opacity 0.5s;}
+.cell-fill.empty-fill{opacity:0;}
+.cell-fill::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.25);border-radius:1px;}
 .cell-fill.warn{background:linear-gradient(180deg,#ffaa00,#664400);}
 .cell-fill.crit{background:linear-gradient(180deg,#ff2200,#440000);}
-.cell-lbl{font-size:6px;color:#1a1a1a;position:absolute;top:3px;left:50%;transform:translateX(-50%);letter-spacing:1px;font-family:'Orbitron',monospace;}
+.cell-lbl{font-size:6px;color:#1a1a1a;position:absolute;top:3px;left:50%;transform:translateX(-50%);letter-spacing:1px;font-family:'Orbitron',monospace;transition:color 0.5s;}
+.cell.empty-cell .cell-lbl{color:#0d0d0d;}
+
+/* SWITCH BANK DIGITAL READOUT */
+.sw-readout{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  background:#050402;border:1px solid #2a2010;border-radius:4px;
+  padding:8px 14px;min-width:120px;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,0.8);
+}
+.sw-readout-row{display:flex;flex-direction:column;align-items:center;gap:1px;}
+.sw-readout-lbl{font-family:'Orbitron',monospace;font-size:5px;letter-spacing:3px;color:#2a2010;}
+.sw-readout-val{font-family:'Share Tech Mono',monospace;font-size:clamp(16px,2.8vw,22px);font-weight:900;letter-spacing:2px;line-height:1;}
+.sw-readout-val.spd-val{color:#ff8800;text-shadow:0 0 10px rgba(255,136,0,0.8);}
+.sw-readout-val.spd-val.fast{color:#ff2200;text-shadow:0 0 14px rgba(255,34,0,0.9);}
+.sw-readout-val.time-val{color:#00cc44;text-shadow:0 0 10px rgba(0,200,68,0.8);font-size:clamp(13px,2.2vw,18px);}
+.sw-readout-divider{width:80%;height:1px;background:#1a1208;margin:2px 0;}
 .reload-btn{font-family:'Orbitron',monospace;font-size:7px;letter-spacing:2px;padding:7px 0;border-radius:3px;border:2px solid #004422;background:#0d0d0d;color:#006622;cursor:pointer;width:100%;transition:all 0.2s;text-align:center;}
 .reload-btn:hover{color:var(--green);border-color:var(--green);box-shadow:0 0 10px rgba(0,255,85,0.2);}
-.reload-btn:active{transform:translateY(1px);}
-.pluto-warn{font-family:'Orbitron',monospace;font-size:6px;letter-spacing:2px;color:#330000;text-align:center;animation:pwblink 0.5s infinite alternate;}
-@keyframes pwblink{from{color:#330000;}to{color:var(--red);text-shadow:0 0 8px var(--red);}}
+.pluto-warn{font-family:'Orbitron',monospace;font-size:6px;letter-spacing:2px;color:#330000;text-align:center;animation:pwb .5s infinite alternate;}
+@keyframes pwb{from{color:#330000;}to{color:var(--red);text-shadow:0 0 8px var(--red);}}
 
-/* ═══ INPUT PANEL ═══ */
+/* INPUT */
 .inp-disp{width:100%;background:#080200;border:1px solid #1a1a1a;border-radius:2px;padding:5px 6px;font-size:clamp(10px,1.8vw,13px);color:var(--red);text-shadow:0 0 8px var(--red-glow);text-align:center;letter-spacing:2px;font-family:'Share Tech Mono',monospace;min-height:28px;display:flex;align-items:center;justify-content:center;}
 .inp-disp.empty{color:#1a0400;text-shadow:none;}
 .inp-hint{font-size:6px;letter-spacing:1px;color:#222;text-align:center;}
 .numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:100%;}
-.nk{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;padding:9px 0;background:linear-gradient(180deg,#1e1e1e,#121212);border:2px solid #2a2a2a;border-bottom:3px solid #080808;border-radius:3px;color:#777;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.08s;user-select:none;box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);}
+.nk{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;padding:9px 0;background:linear-gradient(180deg,#1e1e1e,#121212);border:2px solid #2a2a2a;border-bottom:3px solid #080808;border-radius:3px;color:#777;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.08s;user-select:none;}
 .nk:hover{background:#242424;color:#bbb;}
 .nk:active,.nk.pressed{transform:translateY(2px);border-bottom:1px solid #080808;background:#111;}
 .nk-0{grid-column:1/3;}
-.nk-back{color:var(--yellow)!important;}
+.nk-back{color:var(--yellow) !important;}
 .btn-row{display:flex;gap:4px;width:100%;}
 .act-btn{flex:1;font-family:'Orbitron',monospace;font-size:7px;letter-spacing:1px;padding:8px 0;border-radius:3px;cursor:pointer;background:#0d0d0d;border:1px solid;text-align:center;transition:all 0.15s;}
 .act-btn-enter{color:var(--green);border-color:#004422;}
 .act-btn-enter:hover{background:#001a0a;}
 .act-btn-clr{color:var(--yellow);border-color:#332200;}
 .act-btn-clr:hover{background:#100a00;}
+
+/* NO-PLUTO warning flash */
+#noplutoMsg{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-family:'Orbitron',monospace;font-size:clamp(14px,3vw,28px);letter-spacing:6px;
+  color:var(--red);text-shadow:0 0 20px var(--red);background:rgba(0,0,0,0.92);
+  padding:20px 40px;border:2px solid var(--red);border-radius:4px;
+  z-index:9960;display:none;animation:npmsg .4s infinite alternate;}
+@keyframes npmsg{from{opacity:.6}to{opacity:1;}}
 </style>
 </head>
 <body>
@@ -200,700 +283,642 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
   <div class="tt-sub">88 MPH ACHIEVED — FLUX ENGAGED</div>
   <div class="tt-yr" id="ttYr">1885</div>
 </div>
+<div id="noplutoMsg">⚠ NO PLUTONIUM ⚠</div>
 
 <div class="cockpit">
-  <div class="hdr">DeLorean DMC-12 · Time Machine · Doc Brown Enterprises</div>
 
-  <!-- ══ TIME CIRCUITS PANEL ══ -->
-  <div class="tc-panel">
-    <div class="tc-topbar">
-      <div class="tc-title">TIME CIRCUITS CONTROL</div>
-      <div class="flip-wrap">
-        <span class="flip-lbl off" id="lblOff">OFF</span>
-        <div class="flip-housing" id="flipSwitch" onclick="toggleCircuits()">
-          <div class="flip-lever" id="flipLever"></div>
-        </div>
-        <span class="flip-lbl on" id="lblOn" style="opacity:.2">ON</span>
+  <!-- ══ SWITCH BANK ══ -->
+  <div class="switch-bank">
+
+    <!-- MAIN POWER -->
+    <div class="sw-unit">
+      <div class="sw-top-lbl" id="swLblPwr">MAIN<br>POWER</div>
+      <div class="sw-housing" onclick="togglePower()">
+        <div class="sw-lever col-red" id="swLeverPwr"></div>
+      </div>
+      <div class="sw-led" id="swLedPwr"></div>
+      <div class="sw-bot-lbl">OFF</div>
+    </div>
+
+    <!-- TIME CIRCUITS -->
+    <div class="sw-unit">
+      <div class="sw-top-lbl" id="swLblTC">TIME<br>CIRCUITS</div>
+      <div class="sw-housing" onclick="toggleCircuits()">
+        <div class="sw-lever col-green" id="swLeverTC"></div>
+      </div>
+      <div class="sw-led" id="swLedTC"></div>
+      <div class="sw-bot-lbl">OFF</div>
+    </div>
+
+    <!-- NIGHT MODE -->
+    <div class="sw-unit">
+      <div class="sw-top-lbl" id="swLblNight">NIGHT<br>MODE</div>
+      <div class="sw-housing" onclick="toggleNight()">
+        <div class="sw-lever col-amber" id="swLeverNight"></div>
+      </div>
+      <div class="sw-led" id="swLedNight"></div>
+      <div class="sw-bot-lbl">OFF</div>
+    </div>
+
+    <!-- DIGITAL READOUT -->
+    <div class="sw-readout">
+      <div class="sw-readout-row">
+        <div class="sw-readout-lbl">SPEED</div>
+        <div class="sw-readout-val spd-val" id="swSpeed">0 <span style="font-size:9px;opacity:.5">MPH</span></div>
+      </div>
+      <div class="sw-readout-divider"></div>
+      <div class="sw-readout-row">
+        <div class="sw-readout-lbl">TIME</div>
+        <div class="sw-readout-val time-val" id="swTime">--:--:--</div>
+      </div>
+      <div class="sw-readout-divider"></div>
+      <div class="sw-readout-row">
+        <div class="sw-readout-lbl">DATE</div>
+        <div class="sw-readout-val time-val" id="swDate" style="font-size:clamp(10px,1.6vw,13px)">--/--/----</div>
       </div>
     </div>
 
-    <!-- DESTINATION TIME -->
-    <div class="disp-row row-dest off-state" id="rowDest">
-      <div class="seg-wrap" id="gdDest"></div>
-      <div class="row-lbl">DESTINATION TIME</div>
-    </div>
+  </div><!-- end switch bank -->
 
-    <!-- PRESENT TIME — dot matrix -->
-    <div class="disp-row row-pres off-state" id="rowPres">
-      <canvas id="dotCanvas" width="620" height="56"></canvas>
-      <div class="row-lbl">PRESENT TIME</div>
-    </div>
-
-    <!-- LAST TIME DEPARTED -->
-    <div class="disp-row row-dep off-state" id="rowDep">
-      <div class="seg-wrap" id="gdDep"></div>
-      <div class="row-lbl">LAST TIME DEPARTED</div>
-    </div>
+  <!-- ══ PRESENT TIME — always visible, always ticking ══ -->
+  <div class="present-always">
+    <div class="seg-wrap row-pres" id="gdPres"></div>
+    <div class="row-lbl">PRESENT TIME</div>
   </div>
 
-  <!-- ══ BOTTOM ══ -->
-  <div class="bottom">
+  <!-- ══ COCKPIT INNER — hidden when main power off ══ -->
+  <div class="cockpit-inner">
+    <div class="hdr">DeLorean DMC-12 · Time Machine · Doc Brown Enterprises</div>
 
-    <!-- COL 1: Speedometer -->
-    <div class="sub-panel">
-      <div class="sub-title">VELOCITY</div>
-      <div class="speedo-wrap">
-        <canvas id="speedoCanvas" width="220" height="130"></canvas>
+    <!-- TC PANEL — big display, only lit when time circuits on -->
+    <div class="tc-panel">
+      <div class="tc-toptitle">TIME CIRCUITS</div>
+
+      <div class="disp-row row-dest off-state" id="rowDest">
+        <div class="seg-wrap" id="gdDest"></div>
+        <div class="row-lbl">DESTINATION TIME</div>
       </div>
-      <div class="speed-digital" id="speedDigital">0</div>
-      <span class="speed-unit">MPH</span>
-      <!-- Flux Capacitor -->
-      <div class="sub-title" style="margin-top:4px">FLUX CAPACITOR</div>
-      <div class="flux-wrap">
-        <canvas id="fluxCanvas" width="140" height="90"></canvas>
-        <div class="flux-status" id="fluxStatus">STANDBY</div>
+
+      <div class="disp-row row-dep off-state" id="rowDep">
+        <div class="seg-wrap" id="gdDep"></div>
+        <div class="row-lbl">LAST TIME DEPARTED</div>
       </div>
     </div>
 
-    <!-- COL 2: Engine + Plutonium -->
-    <div class="sub-panel">
-      <div class="sub-title">PROPULSION SYSTEM</div>
-      <div class="ign-row">
-        <span class="ign-lbl">IGNITION</span>
-        <div class="key-housing" id="keyHousing" onclick="toggleIgnition()">
-          <div class="key-icon">🗝️</div>
-        </div>
-      </div>
-      <button class="start-btn" id="startBtn" onclick="toggleEngine()">START ENGINE</button>
-      <div class="bar-row">
-        <div class="bar-lbl">RPM</div>
-        <div class="bar-bg"><div class="bar-fill" id="rpmFill"></div></div>
-      </div>
-      <div class="drive-btns">
-        <div class="drive-btn accel-btn" id="accelBtn"
-          onmousedown="startAccel()" onmouseup="stopAccel()" ontouchstart="startAccel(event)" ontouchend="stopAccel()">
-          ▲ ACCELERATE
-        </div>
-        <div class="drive-btn brake-btn" id="brakeBtn"
-          onmousedown="startBrake()" onmouseup="stopBrake()" ontouchstart="startBrake(event)" ontouchend="stopBrake()">
-          ▼ BRAKE
+    <!-- BOTTOM -->
+    <div class="bottom">
+
+      <!-- COL 1: Speed + Flux -->
+      <div class="sub-panel">
+        <div class="sub-title">VELOCITY</div>
+        <canvas id="speedoCanvas" width="220" height="130"></canvas>
+        <div class="speed-digital" id="speedDigital">0</div>
+        <span class="speed-unit">MPH</span>
+        <div class="sub-title" style="margin-top:4px">FLUX CAPACITOR</div>
+        <div class="flux-wrap">
+          <canvas id="fluxCanvas" width="140" height="90"></canvas>
+          <div class="flux-status" id="fluxStatus">STANDBY</div>
         </div>
       </div>
 
-      <!-- Plutonium -->
-      <div class="sub-title" style="margin-top:4px">PLUTONIUM CHAMBER</div>
-      <div class="pluto-panel">
-        <div class="cells" id="cells">
-          <div class="cell"><div class="cell-fill" id="cell0" style="height:100%"></div><span class="cell-lbl">Pu</span></div>
-          <div class="cell"><div class="cell-fill" id="cell1" style="height:100%"></div><span class="cell-lbl">Pu</span></div>
-          <div class="cell"><div class="cell-fill" id="cell2" style="height:100%"></div><span class="cell-lbl">Pu</span></div>
+      <!-- COL 2: Engine + Plutonium -->
+      <div class="sub-panel">
+        <div class="sub-title">PROPULSION SYSTEM</div>
+        <div class="ign-row">
+          <span class="ign-lbl">IGNITION</span>
+          <div class="key-housing" id="keyHousing" onclick="toggleIgnition()">
+            <div class="key-icon">🗝️</div>
+          </div>
+        </div>
+        <button class="start-btn" id="startBtn" onclick="toggleEngine()">START ENGINE</button>
+        <div class="bar-row">
+          <div class="bar-lbl">RPM</div>
+          <div class="bar-bg"><div class="bar-fill" id="rpmFill"></div></div>
+        </div>
+        <div class="drive-btns">
+          <div class="drive-btn accel-btn" id="accelBtn"
+            onmousedown="startAccel()" onmouseup="stopAccel()"
+            ontouchstart="startAccel(event)" ontouchend="stopAccel()">▲ ACCELERATE</div>
+          <div class="drive-btn brake-btn" id="brakeBtn"
+            onmousedown="startBrake()" onmouseup="stopBrake()"
+            ontouchstart="startBrake(event)" ontouchend="stopBrake()">▼ BRAKE</div>
+        </div>
+        <div class="sub-title" style="margin-top:4px">PLUTONIUM CHAMBER</div>
+        <div class="cells">
+          <div class="cell"><div class="cell-fill" id="cell0"></div><span class="cell-lbl">Pu</span></div>
+          <div class="cell"><div class="cell-fill" id="cell1"></div><span class="cell-lbl">Pu</span></div>
+          <div class="cell"><div class="cell-fill" id="cell2"></div><span class="cell-lbl">Pu</span></div>
         </div>
         <div class="pluto-warn" id="plutoWarn" style="display:none">⚠ LOW FUEL ⚠</div>
         <div class="reload-btn" onclick="reloadPluto()">↺ RELOAD PLUTONIUM</div>
       </div>
-    </div>
 
-    <!-- COL 3: Input -->
-    <div class="sub-panel">
-      <div class="sub-title">DESTINATION INPUT</div>
-      <div class="inp-disp empty" id="inpDisp">__/__/____&nbsp;__:__</div>
-      <div class="inp-hint">FORMAT: MM / DD / YYYY &nbsp; HH : MM</div>
-      <div class="numpad">
-        <div class="nk" onclick="numPress(1)">1</div>
-        <div class="nk" onclick="numPress(2)">2</div>
-        <div class="nk" onclick="numPress(3)">3</div>
-        <div class="nk" onclick="numPress(4)">4</div>
-        <div class="nk" onclick="numPress(5)">5</div>
-        <div class="nk" onclick="numPress(6)">6</div>
-        <div class="nk" onclick="numPress(7)">7</div>
-        <div class="nk" onclick="numPress(8)">8</div>
-        <div class="nk" onclick="numPress(9)">9</div>
-        <div class="nk nk-0" onclick="numPress(0)">0</div>
-        <div class="nk nk-back" onclick="bksp()">⌫</div>
+      <!-- COL 3: Input -->
+      <div class="sub-panel">
+        <div class="sub-title">DESTINATION INPUT</div>
+        <div class="inp-disp empty" id="inpDisp">__/__/____&nbsp;__:__</div>
+        <div class="inp-hint">MM / DD / YYYY &nbsp; HH : MM</div>
+        <div class="numpad">
+          <div class="nk" onclick="numPress(1)">1</div>
+          <div class="nk" onclick="numPress(2)">2</div>
+          <div class="nk" onclick="numPress(3)">3</div>
+          <div class="nk" onclick="numPress(4)">4</div>
+          <div class="nk" onclick="numPress(5)">5</div>
+          <div class="nk" onclick="numPress(6)">6</div>
+          <div class="nk" onclick="numPress(7)">7</div>
+          <div class="nk" onclick="numPress(8)">8</div>
+          <div class="nk" onclick="numPress(9)">9</div>
+          <div class="nk nk-0" onclick="numPress(0)">0</div>
+          <div class="nk nk-back" onclick="bksp()">⌫</div>
+        </div>
+        <div class="btn-row">
+          <div class="act-btn act-btn-enter" onclick="enterTime()">ENTER</div>
+          <div class="act-btn act-btn-clr" onclick="clrInput()">CLEAR</div>
+        </div>
       </div>
-      <div class="btn-row">
-        <div class="act-btn act-btn-enter" onclick="enterTime()">ENTER</div>
-        <div class="act-btn act-btn-clr" onclick="clrInput()">CLEAR</div>
-      </div>
-    </div>
 
-  </div><!-- end .bottom -->
-</div>
+    </div><!-- end .bottom -->
+  </div><!-- end .cockpit-inner -->
+</div><!-- end .cockpit -->
 
 <script>
-// ═══════════════════════════════════════════════
-//  DOT MATRIX FONT  (5 wide × 7 tall per char)
-// ═══════════════════════════════════════════════
-const DOT = {
-  '0':[0,1,1,1,0, 1,0,0,0,1, 1,0,0,1,1, 1,0,1,0,1, 1,1,0,0,1, 1,0,0,0,1, 0,1,1,1,0],
-  '1':[0,0,1,0,0, 0,1,1,0,0, 0,0,1,0,0, 0,0,1,0,0, 0,0,1,0,0, 0,0,1,0,0, 0,1,1,1,0],
-  '2':[0,1,1,1,0, 1,0,0,0,1, 0,0,0,0,1, 0,0,0,1,0, 0,0,1,0,0, 0,1,0,0,0, 1,1,1,1,1],
-  '3':[1,1,1,1,0, 0,0,0,0,1, 0,0,0,0,1, 0,1,1,1,0, 0,0,0,0,1, 0,0,0,0,1, 1,1,1,1,0],
-  '4':[0,0,0,1,0, 0,0,1,1,0, 0,1,0,1,0, 1,0,0,1,0, 1,1,1,1,1, 0,0,0,1,0, 0,0,0,1,0],
-  '5':[1,1,1,1,1, 1,0,0,0,0, 1,1,1,1,0, 0,0,0,0,1, 0,0,0,0,1, 1,0,0,0,1, 0,1,1,1,0],
-  '6':[0,1,1,1,0, 1,0,0,0,0, 1,0,0,0,0, 1,1,1,1,0, 1,0,0,0,1, 1,0,0,0,1, 0,1,1,1,0],
-  '7':[1,1,1,1,1, 0,0,0,0,1, 0,0,0,1,0, 0,0,1,0,0, 0,1,0,0,0, 0,1,0,0,0, 0,1,0,0,0],
-  '8':[0,1,1,1,0, 1,0,0,0,1, 1,0,0,0,1, 0,1,1,1,0, 1,0,0,0,1, 1,0,0,0,1, 0,1,1,1,0],
-  '9':[0,1,1,1,0, 1,0,0,0,1, 1,0,0,0,1, 0,1,1,1,1, 0,0,0,0,1, 0,0,0,0,1, 0,1,1,1,0],
-  ':':[0,0, 0,0, 0,1, 0,0, 0,1, 0,0, 0,0],
-  ' ':[0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0],
-  'A':[0,1,1,1,0, 1,0,0,0,1, 1,0,0,0,1, 1,1,1,1,1, 1,0,0,0,1, 1,0,0,0,1, 1,0,0,0,1],
-  'M':[1,0,0,0,1, 1,1,0,1,1, 1,0,1,0,1, 1,0,0,0,1, 1,0,0,0,1, 1,0,0,0,1, 1,0,0,0,1],
-  'P':[1,1,1,1,0, 1,0,0,0,1, 1,0,0,0,1, 1,1,1,1,0, 1,0,0,0,0, 1,0,0,0,0, 1,0,0,0,0],
-  '/':[0,0,0,0,1, 0,0,0,1,0, 0,0,0,1,0, 0,0,1,0,0, 0,1,0,0,0, 0,1,0,0,0, 1,0,0,0,0],
-};
-const DOTW = {'0':5,'1':5,'2':5,'3':5,'4':5,'5':5,'6':5,'7':5,'8':5,'9':5,':':2,' ':3,'A':5,'M':5,'P':5,'/':5};
+// ═══════════════════════════════════
+//  AUDIO — 1-second beep engine
+// ═══════════════════════════════════
+let actx;
+function getCtx(){if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();return actx;}
 
-function drawDotStr(ctx, str, x, y, dotR, gap, litColor, dimColor){
-  let cx = x;
-  for(const ch of str){
-    const pat = DOT[ch];
-    const w   = DOTW[ch] || 5;
-    if(!pat){cx += (w+1)*(dotR*2+gap); continue;}
-    for(let row=0;row<7;row++){
-      for(let col=0;col<w;col++){
-        const lit = pat[row*w+col];
-        ctx.beginPath();
-        ctx.arc(cx + col*(dotR*2+gap)+dotR, y + row*(dotR*2+gap)+dotR, dotR, 0, Math.PI*2);
-        ctx.fillStyle = lit ? litColor : dimColor;
-        if(lit){ ctx.shadowBlur=dotR*3; ctx.shadowColor=litColor; }
-        else   { ctx.shadowBlur=0; }
-        ctx.fill();
-      }
-    }
-    cx += w*(dotR*2+gap) + gap*3;
-  }
-}
-
-// Measure string width in dots
-function dotStrW(str, dotR, gap){
-  let w=0;
-  for(const ch of str){
-    const cw=(DOTW[ch]||5);
-    w += cw*(dotR*2+gap) + gap*3;
-  }
-  return w;
-}
-
-// ═══════════════════════════════════════════════
-//  SPEEDOMETER CANVAS
-// ═══════════════════════════════════════════════
-const spdCv  = document.getElementById('speedoCanvas');
-const spdCtx = spdCv.getContext('2d');
-let   speed  = 0;
-
-function drawSpeedo(spd){
-  const W=220,H=130,cx=110,cy=118,R=95;
-  spdCtx.clearRect(0,0,W,H);
-
-  // Warped arc: start -210° end +30° (240° sweep)
-  const startA = Math.PI*(1 + 1/6);   // -210° from 3-o'clock = 210° CCW
-  const endA   = Math.PI*(0 - 1/6);   // +30°
-  const sweep  = Math.PI*240/180;
-
-  // Background arc track
-  spdCtx.save();
-  spdCtx.beginPath();
-  spdCtx.arc(cx,cy,R, startA, startA+sweep);
-  spdCtx.strokeStyle='#1a1a1a'; spdCtx.lineWidth=18; spdCtx.lineCap='round';
-  spdCtx.stroke();
-
-  // Color zones
-  const z=[
-    {from:0,  to:0.5,  col:'#003300'},
-    {from:0.5,to:0.75, col:'#332200'},
-    {from:0.75,to:1.0, col:'#330000'},
-  ];
-  z.forEach(zo=>{
-    spdCtx.beginPath();
-    spdCtx.arc(cx,cy,R, startA+sweep*zo.from, startA+sweep*zo.to);
-    spdCtx.strokeStyle=zo.col; spdCtx.lineWidth=14; spdCtx.lineCap='butt';
-    spdCtx.stroke();
-  });
-
-  // Tick marks + labels
-  spdCtx.save();
-  for(let mph=0;mph<=120;mph+=20){
-    const t=mph/120, a=startA+sweep*t;
-    const cos=Math.cos(a),sin=Math.sin(a);
-    // long tick
-    spdCtx.beginPath();
-    spdCtx.moveTo(cx+cos*(R-9),cy+sin*(R-9));
-    spdCtx.lineTo(cx+cos*(R+1),cy+sin*(R+1));
-    spdCtx.strokeStyle='#444'; spdCtx.lineWidth=1.5; spdCtx.stroke();
-    // label
-    spdCtx.fillStyle='#333';
-    spdCtx.font='bold 9px Orbitron,monospace';
-    spdCtx.textAlign='center';spdCtx.textBaseline='middle';
-    const lr=R-18;
-    spdCtx.fillText(String(mph), cx+cos*lr, cy+sin*lr);
-  }
-  // minor ticks
-  for(let mph=0;mph<=120;mph+=10){
-    const t=mph/120, a=startA+sweep*t;
-    const cos=Math.cos(a),sin=Math.sin(a);
-    spdCtx.beginPath();
-    spdCtx.moveTo(cx+cos*(R-4),cy+sin*(R-4));
-    spdCtx.lineTo(cx+cos*(R+1),cy+sin*(R+1));
-    spdCtx.strokeStyle='#2a2a2a'; spdCtx.lineWidth=1; spdCtx.stroke();
-  }
-  spdCtx.restore();
-
-  // 88 mph marker
-  {
-    const t=88/120, a=startA+sweep*t;
-    const cos=Math.cos(a),sin=Math.sin(a);
-    spdCtx.save();
-    spdCtx.shadowBlur=8; spdCtx.shadowColor='#ff2200';
-    spdCtx.beginPath();
-    spdCtx.moveTo(cx+cos*(R-12),cy+sin*(R-12));
-    spdCtx.lineTo(cx+cos*(R+2), cy+sin*(R+2));
-    spdCtx.strokeStyle='#ff2200'; spdCtx.lineWidth=3; spdCtx.stroke();
-    spdCtx.fillStyle='#ff2200'; spdCtx.font='bold 7px Orbitron,monospace';
-    spdCtx.textAlign='center'; spdCtx.textBaseline='middle';
-    spdCtx.fillText('88',cx+cos*(R-22),cy+sin*(R-22));
-    spdCtx.restore();
-  }
-
-  // Active arc (fill up to current speed)
-  if(spd>0){
-    const frac=Math.min(spd/120,1);
-    const col = spd>=88?'#ff2200': spd>=60?'#ffaa00':'#00ff55';
-    spdCtx.save();
-    spdCtx.shadowBlur=10; spdCtx.shadowColor=col;
-    spdCtx.beginPath();
-    spdCtx.arc(cx,cy,R, startA, startA+sweep*frac);
-    spdCtx.strokeStyle=col; spdCtx.lineWidth=6; spdCtx.lineCap='round';
-    spdCtx.stroke();
-    spdCtx.restore();
-  }
-
-  // Needle
-  {
-    const frac=Math.min(spd/120,1);
-    const a=startA+sweep*frac;
-    const col=spd>=88?'#ff2200':'#ff8800';
-    spdCtx.save();
-    spdCtx.shadowBlur=12; spdCtx.shadowColor=col;
-    spdCtx.beginPath();
-    spdCtx.moveTo(cx,cy);
-    spdCtx.lineTo(cx+Math.cos(a)*(R-4), cy+Math.sin(a)*(R-4));
-    spdCtx.strokeStyle=col; spdCtx.lineWidth=2.5; spdCtx.lineCap='round';
-    spdCtx.stroke();
-    // Center hub
-    spdCtx.beginPath();
-    spdCtx.arc(cx,cy,5,0,Math.PI*2);
-    spdCtx.fillStyle='#555'; spdCtx.shadowBlur=0; spdCtx.fill();
-    spdCtx.beginPath();
-    spdCtx.arc(cx,cy,2,0,Math.PI*2);
-    spdCtx.fillStyle='#aaa'; spdCtx.fill();
-    spdCtx.restore();
-  }
-}
-
-// ═══════════════════════════════════════════════
-//  DOT MATRIX CLOCK (present time)
-// ═══════════════════════════════════════════════
-const dotCv  = document.getElementById('dotCanvas');
-const dotCtx = dotCv.getContext('2d');
-
-function drawClock(){
-  if(!circuitsOn){ dotCtx.clearRect(0,0,dotCv.width,dotCv.height); return; }
-  const now=new Date();
-  const mo = String(now.getMonth()+1).padStart(2,'0');
-  const dy = String(now.getDate()).padStart(2,'0');
-  const yr = String(now.getFullYear());
-  let   hr = now.getHours();
-  const mn = String(now.getMinutes()).padStart(2,'0');
-  const pm = hr>=12;
-  hr = hr%12||12;
-  const hrS=String(hr).padStart(2,'0');
-  const ampm=pm?'PM':'AM';
-  // Build string: MO/DY/YYYY  HH:MM AM
-  const str=`${mo}/${dy}/${yr} ${hrS}:${mn} ${ampm}`;
-  const dotR=3.2, gap=0.8;
-  const tw = dotStrW(str,dotR,gap);
-  const x=(dotCv.width-tw)/2;
-  const y=(dotCv.height-7*(dotR*2+gap))/2;
-  dotCtx.clearRect(0,0,dotCv.width,dotCv.height);
-  drawDotStr(dotCtx,str,x,y,dotR,gap,'#00ff55','#001a07');
-}
-
-// Resize dot canvas to actual rendered width
-function resizeDotCanvas(){
-  const row=document.getElementById('rowPres');
-  const w=row.clientWidth-20;
-  if(w>100){dotCv.width=w;dotCv.style.width=w+'px';}
-}
-
-// ═══════════════════════════════════════════════
-//  FLUX CAPACITOR
-// ═══════════════════════════════════════════════
-const flxCv  = document.getElementById('fluxCanvas');
-const flxCtx = flxCv.getContext('2d');
-let   fluxT  = 0;
-
-function drawFlux(spd){
-  const W=140,H=90,cx=70,cy=58;
-  flxCtx.clearRect(0,0,W,H);
-  const pct=Math.min(spd/88,1);
-  const active=pct>0.1;
-  const col=pct>=1?'#ff2200': pct>0.5?'#ffaa00':'#ffcc00';
-  const dim='#1a1400';
-
-  // Three arms at 270°, 30°, 150° (Y shape)
-  const arms=[270,30,150];
-  const armLen=32;
-  arms.forEach(deg=>{
-    const rad=deg*Math.PI/180;
-    const ex=cx+Math.cos(rad)*armLen, ey=cy+Math.sin(rad)*armLen;
-    // Arm tube
-    flxCtx.save();
-    flxCtx.strokeStyle=active?'#333':'#1a1a1a'; flxCtx.lineWidth=6; flxCtx.lineCap='round';
-    flxCtx.beginPath(); flxCtx.moveTo(cx,cy); flxCtx.lineTo(ex,ey); flxCtx.stroke();
-    // Lightning bolt along arm
-    if(active && pct>0.15){
-      flxCtx.shadowBlur=8; flxCtx.shadowColor=col;
-      flxCtx.strokeStyle=col; flxCtx.lineWidth=1.5;
-      flxCtx.beginPath();
-      flxCtx.moveTo(cx,cy);
-      const segs=5;
-      for(let s=1;s<=segs;s++){
-        const t=s/segs;
-        const bx=cx+(ex-cx)*t, by=cy+(ey-cy)*t;
-        const off=(Math.sin(fluxT*8+s*2+deg)*8*pct);
-        const nx=-Math.sin(rad), ny=Math.cos(rad);
-        flxCtx.lineTo(bx+nx*off, by+ny*off);
-      }
-      flxCtx.stroke();
-      flxCtx.shadowBlur=0;
-    }
-    // Tip globe
-    flxCtx.shadowBlur=active?10:0; flxCtx.shadowColor=col;
-    flxCtx.beginPath(); flxCtx.arc(ex,ey,5,0,Math.PI*2);
-    flxCtx.fillStyle=active?col:dim; flxCtx.fill();
-    flxCtx.shadowBlur=0;
-    spdCtx.restore && null; flxCtx.restore();
-  });
-
-  // Center node
-  flxCtx.save();
-  flxCtx.shadowBlur=active?16:0; flxCtx.shadowColor=col;
-  flxCtx.beginPath(); flxCtx.arc(cx,cy,8,0,Math.PI*2);
-  flxCtx.fillStyle=active?col:'#111'; flxCtx.fill();
-  flxCtx.shadowBlur=0;
-  // inner spark
-  if(active){
-    flxCtx.beginPath(); flxCtx.arc(cx,cy,4+(Math.sin(fluxT*12)*2*pct),0,Math.PI*2);
-    flxCtx.fillStyle='#fff'; flxCtx.fill();
-  }
-  flxCtx.restore();
-
-  // Outer arcs between tips
-  if(pct>0.3){
-    arms.forEach((deg,i)=>{
-      const deg2=arms[(i+1)%3];
-      const r1=deg*Math.PI/180, r2=deg2*Math.PI/180;
-      const x1=cx+Math.cos(r1)*armLen, y1=cy+Math.sin(r1)*armLen;
-      const x2=cx+Math.cos(r2)*armLen, y2=cy+Math.sin(r2)*armLen;
-      flxCtx.save();
-      flxCtx.shadowBlur=6; flxCtx.shadowColor=col;
-      flxCtx.strokeStyle=col; flxCtx.lineWidth=0.8; flxCtx.globalAlpha=0.4*pct*(0.5+0.5*Math.sin(fluxT*15+i));
-      flxCtx.beginPath();
-      // Jagged arc
-      flxCtx.moveTo(x1,y1);
-      const steps=6;
-      for(let s=1;s<=steps;s++){
-        const t=s/steps;
-        const bx=x1+(x2-x1)*t, by=y1+(y2-y1)*t;
-        const off=(Math.random()-0.5)*12*pct;
-        flxCtx.lineTo(bx+off,by+off);
-      }
-      flxCtx.stroke();
-      flxCtx.restore();
-    });
-  }
-}
-
-// ═══════════════════════════════════════════════
-//  AUDIO
-// ═══════════════════════════════════════════════
-let actx,engNode,engGain,engRunning=false;
-function getACtx(){if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();return actx;}
-function tone(f,d,v=0.25,t='square',att=0.01){
-  try{const c=getACtx(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type=t;o.frequency.value=f;g.gain.setValueAtTime(0,c.currentTime);g.gain.linearRampToValueAtTime(v,c.currentTime+att);g.gain.setValueAtTime(v,c.currentTime+d-0.04);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+d);o.start();o.stop(c.currentTime+d);}catch(e){}
-}
-function sndClick(){tone(1300,0.04,0.08,'square');}
-function sndSwitch(){tone(700,0.05,0.15,'square');setTimeout(()=>tone(1000,0.06,0.15,'square'),50);}
-function sndEnter(){[440,660,880].forEach((f,i)=>setTimeout(()=>tone(f,0.1,0.25,'square'),i*65));}
-function sndClear(){tone(220,0.15,0.18,'sawtooth');}
-function sndErr(){tone(150,0.3,0.3,'sawtooth');}
-function sndTimeSet(){[880,1100,1320,1760].forEach((f,i)=>setTimeout(()=>tone(f,0.07,0.18,'square'),i*45));}
-function sndPowerOn(){[120,200,350,500,700,900].forEach((f,i)=>setTimeout(()=>tone(f,0.1,0.2,'square'),i*45));}
-function sndPowerOff(){[800,500,300,180,100].forEach((f,i)=>setTimeout(()=>tone(f,0.1,0.2,'sawtooth'),i*50));}
-function sndStarter(){
-  try{const c=getACtx(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='sawtooth';o.frequency.setValueAtTime(55,c.currentTime);o.frequency.linearRampToValueAtTime(200,c.currentTime+0.9);o.frequency.linearRampToValueAtTime(140,c.currentTime+1.2);g.gain.setValueAtTime(0.18,c.currentTime);g.gain.linearRampToValueAtTime(0.05,c.currentTime+1.2);o.start();o.stop(c.currentTime+1.2);}catch(e){}
-}
-function sndTT(){
+function tone(f,dur,vol=0.25,type='square',att=0.01){
   try{
-    for(let i=0;i<10;i++) setTimeout(()=>tone(200+i*300,0.25,0.2,'sawtooth'),i*70);
-    setTimeout(()=>tone(60,1.5,0.5,'square'),700);
-  }catch(e){}
-}
-function startEngSnd(){
-  try{
-    const c=getACtx();
-    const o1=c.createOscillator(),o2=c.createOscillator(),ws=c.createWaveShaper();
-    engGain=c.createGain(); engGain.gain.value=0;
-    const curve=new Float32Array(256);
-    for(let i=0;i<256;i++){const x=i*2/256-1;curve[i]=Math.tanh(x*3)/Math.tanh(3);}
-    ws.curve=curve;
-    o1.type='sawtooth';o1.frequency.value=58;
-    o2.type='square';  o2.frequency.value=116;
-    o1.connect(ws);o2.connect(ws);ws.connect(engGain);engGain.connect(c.destination);
-    o1.start();o2.start();
-    engNode={o1,o2};
-    engGain.gain.linearRampToValueAtTime(0.07,c.currentTime+1.3);
-    engRunning=true;
-  }catch(e){}
-}
-function stopEngSnd(){
-  if(engGain){try{engGain.gain.linearRampToValueAtTime(0.001,getACtx().currentTime+0.8);}catch(e){}
-  setTimeout(()=>{try{engNode&&[engNode.o1,engNode.o2].forEach(o=>o.stop());}catch(e){}},900);}
-  engNode=null;engGain=null;engRunning=false;
-}
-function setEngRpm(r){
-  if(!engNode||!engGain)return;
-  try{const c=getACtx();
-    engNode.o1.frequency.setTargetAtTime(55+r*140,c.currentTime,0.08);
-    engNode.o2.frequency.setTargetAtTime(110+r*280,c.currentTime,0.08);
-    engGain.gain.setTargetAtTime(0.04+r*0.1,c.currentTime,0.08);
+    const c=getCtx(),o=c.createOscillator(),g=c.createGain();
+    o.connect(g);g.connect(c.destination);
+    o.type=type;o.frequency.value=f;
+    g.gain.setValueAtTime(0,c.currentTime);
+    g.gain.linearRampToValueAtTime(vol,c.currentTime+att);
+    g.gain.setValueAtTime(vol,c.currentTime+dur-0.04);
+    g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+dur);
+    o.start();o.stop(c.currentTime+dur);
   }catch(e){}
 }
 
-// ═══════════════════════════════════════════════
+function sndClick() { tone(1300,0.04,0.08,'square'); }
+function sndSwitch(){ tone(700,0.05,0.15,'square'); setTimeout(()=>tone(1000,0.06,0.15,'square'),50); }
+function sndEnter() { [440,660,880].forEach((f,i)=>setTimeout(()=>tone(f,0.1,0.25,'square'),i*65)); }
+function sndClear()  { tone(220,0.15,0.18,'sawtooth'); }
+function sndErr()   { tone(150,0.3,0.3,'sawtooth'); }
+function sndTimeSet(){ [880,1100,1320,1760].forEach((f,i)=>setTimeout(()=>tone(f,0.07,0.18,'square'),i*45)); }
+function sndPwrOn() { [120,200,350,500,700,900].forEach((f,i)=>setTimeout(()=>tone(f,0.1,0.2,'square'),i*45)); }
+function sndPwrOff(){ [800,500,300,180,100].forEach((f,i)=>setTimeout(()=>tone(f,0.1,0.2,'sawtooth'),i*50)); }
+function sndTT()    {
+  for(let i=0;i<10;i++) setTimeout(()=>tone(200+i*300,0.25,0.2,'sawtooth'),i*70);
+  setTimeout(()=>tone(60,1.5,0.5,'square'),700);
+}
+
+// ── ENGINE = 1-second repeating beep ──
+let engBeepInterval=null;
+function startEngBeep(){
+  if(engBeepInterval)return;
+  // Immediately one beep, then repeat every 1s
+  doEngBeep();
+  engBeepInterval=setInterval(doEngBeep,1000);
+}
+function doEngBeep(){
+  tone(110,0.12,0.18,'square');      // low thump
+  setTimeout(()=>tone(165,0.08,0.12,'square'),120);  // harmonic
+}
+function stopEngBeep(){
+  if(engBeepInterval){clearInterval(engBeepInterval);engBeepInterval=null;}
+}
+// Higher RPM beep speed as acceleration
+function setEngRpmBeep(frac){
+  // frac 0..1 → interval 1000ms..200ms
+  if(!engBeepInterval&&!engOn)return;
+  stopEngBeep();
+  const ms=Math.round(1000-frac*800);
+  doEngBeep();
+  engBeepInterval=setInterval(doEngBeep,Math.max(ms,120));
+}
+
+// ═══════════════════════════════════
 //  STATE
-// ═══════════════════════════════════════════════
-let circuitsOn=false, ignOn=false, engOn=false;
-let accelOn=false, brakeOn=false;
-let timeTraveling=false;
-let digits=[];
-let pluto=[100,100,100]; // percent
+// ═══════════════════════════════════
+let powerOn   = false;
+let circuitsOn= false;
+let nightOn   = false;
+let ignOn     = false;
+let engOn     = false;
+let accelOn   = false;
+let brakeOn   = false;
+let timeTraveling = false;
+let speed     = 0;
+let digits    = [];
+let pluto     = [100,100,100]; // percent each cell
 
-let TD={
+let TD = {
   dest:{mo:'10',dy:'26',yr:'1985',hr:'01',mn:'21',pm:true},
   dep: {mo:'11',dy:'05',yr:'1955',hr:'06',mn:'00',pm:false},
 };
 
-// ═══════════════════════════════════════════════
-//  BUILD 7-SEG ROWS
-// ═══════════════════════════════════════════════
-function buildSegRow(id,cls){
-  const c=document.getElementById(id);c.innerHTML='';
-  const groups=[{l:'MONTH',k:'mo',n:2},{l:'DAY',k:'dy',n:2},{l:'YEAR',k:'yr',n:4},{l:'HOUR',k:'hr',n:2},{l:'MIN',k:'mn',n:2}];
-  groups.forEach((g,gi)=>{
-    if(gi>0){const s=document.createElement('div');s.className='segsep';s.textContent=gi===4?':':'/';c.appendChild(s);}
-    const dg=document.createElement('div');dg.className='seg-group';
-    const lbl=document.createElement('div');lbl.className='seg-lbl';lbl.textContent=g.l;
-    const dr=document.createElement('div');dr.className='seg-digits';
-    for(let i=0;i<g.n;i++){const d=document.createElement('span');d.className='segdig';d.id=`${id}-${g.k}-${i}`;d.textContent='0';dr.appendChild(d);}
-    dg.appendChild(lbl);dg.appendChild(dr);c.appendChild(dg);
-  });
-  const ap=document.createElement('div');ap.className='ampm-box';
-  ap.innerHTML=`<span id="${id}-am">AM</span><span id="${id}-pm">PM</span>`;c.appendChild(ap);
+// ═══════════════════════════════════
+//  SWITCHES
+// ═══════════════════════════════════
+function setSwitchVisual(id, on, colorClass){
+  const lev=document.getElementById('swLever'+id);
+  const led=document.getElementById('swLed'+id);
+  const lbl=document.getElementById('swLbl'+id);
+  lev.classList.toggle('on', on);
+  led.className='sw-led'+(on?' on-'+colorClass.replace('col-',''):'');
+  lbl.className='sw-top-lbl'+(on?' lit-'+colorClass.replace('col-',''):'');
 }
 
-function setSegRow(id,t){
-  [['mo',2],['dy',2],['yr',4],['hr',2],['mn',2]].forEach(([k,n])=>{
-    const v=String(t[k]).padStart(n,'0');
-    for(let i=0;i<n;i++){const el=document.getElementById(`${id}-${k}-${i}`);if(el)el.textContent=v[i];}
-  });
-  const am=document.getElementById(`${id}-am`),pm=document.getElementById(`${id}-pm`);
-  if(am&&pm){am.classList.toggle('lit',!t.pm);pm.classList.toggle('lit',!!t.pm);}
-}
-
-// ═══════════════════════════════════════════════
-//  FLIP SWITCH / TIME CIRCUITS
-// ═══════════════════════════════════════════════
-function toggleCircuits(){
-  circuitsOn=!circuitsOn;
-  document.getElementById('flipLever').classList.toggle('on',circuitsOn);
-  document.getElementById('lblOff').style.opacity=circuitsOn?'0.2':'1';
-  document.getElementById('lblOn').style.opacity=circuitsOn?'1':'0.2';
+function togglePower(){
+  powerOn=!powerOn;
+  setSwitchVisual('Pwr', powerOn, 'col-red');
   sndSwitch();
-  const rows=['rowDest','rowPres','rowDep'];
-  rows.forEach((r,i)=>{
+  document.body.classList.toggle('poweroff', !powerOn);
+  if(powerOn){ sndPwrOn(); }
+  else{
+    sndPwrOff();
+    // Kill engine if on
+    if(engOn){ engOn=false; stopEngBeep(); updateStartBtn(); updateDriveBtns(); }
+    if(ignOn){ ignOn=false; document.getElementById('keyHousing').classList.remove('on'); }
+    speed=0;
+    document.getElementById('rpmFill').style.width='0%';
+  }
+}
+
+function toggleCircuits(){
+  if(!powerOn){ sndErr(); return; }
+  circuitsOn=!circuitsOn;
+  setSwitchVisual('TC', circuitsOn, 'col-green');
+  sndSwitch();
+  // dest + dep are the "big display" — only these toggle
+  ['rowDest','rowDep'].forEach((r,i)=>{
     setTimeout(()=>{
       const el=document.getElementById(r);
       if(circuitsOn){
         el.classList.remove('off-state');
-        // Flicker
-        [0,80,160].forEach((ms,fi)=>{setTimeout(()=>{el.style.opacity=fi%2?'1':'0.1';},ms);});
-        setTimeout(()=>el.style.opacity='1',240);
-      }else{
+        [0,70,140].forEach((ms,fi)=>setTimeout(()=>el.style.opacity=fi%2?'1':'0.08',ms));
+        setTimeout(()=>el.style.opacity='1',210);
+      } else {
         el.classList.add('off-state');
       }
-    },i*70);
+    },i*80);
   });
   if(circuitsOn){
-    setSegRow('gdDest',TD.dest);setSegRow('gdDep',TD.dep);
-    sndPowerOn();
-  }else{
-    sndPowerOff();
-    dotCtx.clearRect(0,0,dotCv.width,dotCv.height);
+    setSegRow('gdDest',TD.dest);
+    setSegRow('gdDep', TD.dep);
+    sndPwrOn();
+  } else {
+    sndPwrOff();
   }
 }
 
-// ═══════════════════════════════════════════════
+function toggleNight(){
+  nightOn=!nightOn;
+  setSwitchVisual('Night', nightOn, 'col-amber');
+  sndSwitch();
+  document.body.classList.toggle('night', nightOn);
+}
+
+// ═══════════════════════════════════
+//  BUILD 7-SEG ROWS
+// ═══════════════════════════════════
+function buildSegRow(containerId){
+  const c=document.getElementById(containerId); c.innerHTML='';
+  const groups=[
+    {l:'MONTH',k:'mo',n:2},{l:'DAY',k:'dy',n:2},
+    {l:'YEAR',k:'yr',n:4},{l:'HOUR',k:'hr',n:2},{l:'MIN',k:'mn',n:2}
+  ];
+  groups.forEach((g,gi)=>{
+    if(gi>0){
+      const s=document.createElement('div');s.className='segsep';
+      s.textContent=gi===4?':':'/';c.appendChild(s);
+    }
+    const dg=document.createElement('div');dg.className='seg-group';
+    const lbl=document.createElement('div');lbl.className='seg-lbl';lbl.textContent=g.l;
+    const dr=document.createElement('div');dr.className='seg-digits';
+    for(let i=0;i<g.n;i++){
+      const d=document.createElement('span');d.className='segdig';
+      d.id=`${containerId}-${g.k}-${i}`;d.textContent='0';dr.appendChild(d);
+    }
+    dg.appendChild(lbl);dg.appendChild(dr);c.appendChild(dg);
+  });
+  const ap=document.createElement('div');ap.className='ampm-box';
+  ap.innerHTML=`<span id="${containerId}-am">AM</span><span id="${containerId}-pm">PM</span>`;
+  c.appendChild(ap);
+}
+
+function setSegRow(containerId, t){
+  [['mo',2],['dy',2],['yr',4],['hr',2],['mn',2]].forEach(([k,n])=>{
+    const v=String(t[k]).padStart(n,'0');
+    for(let i=0;i<n;i++){
+      const el=document.getElementById(`${containerId}-${k}-${i}`);
+      if(el) el.textContent=v[i];
+    }
+  });
+  const am=document.getElementById(`${containerId}-am`);
+  const pm=document.getElementById(`${containerId}-pm`);
+  if(am&&pm){am.classList.toggle('lit',!t.pm);pm.classList.toggle('lit',!!t.pm);}
+}
+
+// Update present time display — always ticks, independent of switches
+function updatePresent(){
+  const now=new Date();
+  let h=now.getHours(); const pm=h>=12; h=h%12||12;
+  const t={
+    mo:String(now.getMonth()+1).padStart(2,'0'),
+    dy:String(now.getDate()).padStart(2,'0'),
+    yr:String(now.getFullYear()),
+    hr:String(h).padStart(2,'0'),
+    mn:String(now.getMinutes()).padStart(2,'0'),
+    pm
+  };
+  setSegRow('gdPres',t);
+  // Also update switch panel readout
+  const hh=String(now.getHours()).padStart(2,'0');
+  const mm=String(now.getMinutes()).padStart(2,'0');
+  const ss=String(now.getSeconds()).padStart(2,'0');
+  const mo=String(now.getMonth()+1).padStart(2,'0');
+  const dy=String(now.getDate()).padStart(2,'0');
+  const yr=String(now.getFullYear());
+  document.getElementById('swTime').textContent=`${hh}:${mm}:${ss}`;
+  document.getElementById('swDate').textContent=`${mo}/${dy}/${yr}`;
+}
+
+// Update switch panel speed display
+function updateSwSpeed(){
+  const spd=Math.round(speed);
+  const el=document.getElementById('swSpeed');
+  el.innerHTML=`${spd} <span style="font-size:9px;opacity:.5">MPH</span>`;
+  el.classList.toggle('fast', spd>=88);
+}
+
+// ═══════════════════════════════════
 //  IGNITION + ENGINE
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════
 function toggleIgnition(){
+  if(!powerOn){ sndErr(); return; }
   ignOn=!ignOn;
   document.getElementById('keyHousing').classList.toggle('on',ignOn);
   tone(ignOn?900:600,0.08,0.2,'square');
   if(!ignOn&&engOn) shutEngine();
-  updateStartBtn();updateDriveBtns();
+  updateStartBtn(); updateDriveBtns();
 }
 
 function updateStartBtn(){
   const b=document.getElementById('startBtn');
-  if(!ignOn){b.className='start-btn';b.textContent='START ENGINE';return;}
-  if(engOn){b.className='start-btn running';b.textContent='■ KILL ENGINE';}
-  else{b.className='start-btn ready';b.textContent='▶ START ENGINE';}
+  if(!ignOn||!powerOn){ b.className='start-btn'; b.textContent='START ENGINE'; return; }
+  if(engOn){ b.className='start-btn running'; b.textContent='■ KILL ENGINE'; }
+  else      { b.className='start-btn ready';   b.textContent='▶ START ENGINE'; }
 }
 
 function toggleEngine(){
-  if(!ignOn)return;
-  if(engOn){shutEngine();}else{fireEngine();}
+  if(!ignOn||!powerOn) return;
+  engOn ? shutEngine() : fireEngine();
 }
 
 function fireEngine(){
-  document.getElementById('startBtn').className='start-btn';
-  document.getElementById('startBtn').textContent='CRANKING…';
-  sndStarter();
+  const b=document.getElementById('startBtn');
+  b.className='start-btn'; b.textContent='CRANKING…';
+  // Starter: quick rising beeps
+  [80,110,140,180,220].forEach((f,i)=>setTimeout(()=>tone(f,0.18,0.22,'sawtooth'),i*180));
   setTimeout(()=>{
-    engOn=true;startEngSnd();
-    updateStartBtn();updateDriveBtns();
-    animRpmCrank();
-  },1250);
+    engOn=true;
+    startEngBeep();
+    updateStartBtn(); updateDriveBtns();
+  },1000);
 }
 
 function shutEngine(){
-  engOn=false;stopEngSnd();
-  speed=0;
+  engOn=false; stopEngBeep(); speed=0;
   document.getElementById('rpmFill').style.width='0%';
-  updateStartBtn();updateDriveBtns();
-}
-
-let rpmTarget=0.28;
-function animRpmCrank(){
-  let r=0;const iv=setInterval(()=>{r+=0.03;if(r>=rpmTarget){r=rpmTarget;clearInterval(iv);}
-    document.getElementById('rpmFill').style.width=(r*100)+'%';setEngRpm(r);},35);
+  updateStartBtn(); updateDriveBtns();
 }
 
 function updateDriveBtns(){
-  ['accelBtn','brakeBtn'].forEach(id=>{
-    const b=document.getElementById(id);
-    b.classList.toggle('ready',engOn);
-  });
+  ['accelBtn','brakeBtn'].forEach(id=>document.getElementById(id).classList.toggle('ready',engOn&&powerOn));
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════
 //  DRIVING
-// ═══════════════════════════════════════════════
-function startAccel(e){if(e)e.preventDefault();if(!engOn)return;accelOn=true;document.getElementById('accelBtn').classList.add('pressed');}
-function stopAccel(){accelOn=false;document.getElementById('accelBtn').classList.remove('pressed');}
-function startBrake(e){if(e)e.preventDefault();if(!engOn)return;brakeOn=true;}
-function stopBrake(){brakeOn=false;}
+// ═══════════════════════════════════
+function startAccel(e){ if(e)e.preventDefault(); if(!engOn||!powerOn)return; accelOn=true; document.getElementById('accelBtn').classList.add('pressed'); }
+function stopAccel()  { accelOn=false; document.getElementById('accelBtn').classList.remove('pressed'); }
+function startBrake(e){ if(e)e.preventDefault(); if(!engOn||!powerOn)return; brakeOn=true; }
+function stopBrake()  { brakeOn=false; }
 
+let lastRpmFrac=0.28;
 function driveTick(){
-  if(!engOn){if(speed>0){speed=Math.max(0,speed-0.4);}return;}
-  if(accelOn&&speed<120)       speed=Math.min(120,speed+0.9);
-  else if(brakeOn&&speed>0)    speed=Math.max(0,speed-1.8);
-  else if(!accelOn&&speed>0)   speed=Math.max(0,speed-0.25);
+  if(!engOn||!powerOn){ if(speed>0){speed=Math.max(0,speed-0.5);} return; }
+  if(accelOn && speed<120)    speed=Math.min(120,speed+0.9);
+  else if(brakeOn && speed>0) speed=Math.max(0,speed-1.8);
+  else if(speed>0)            speed=Math.max(0,speed-0.25);
 
-  const rpm=rpmTarget+speed/120*(1-rpmTarget);
-  document.getElementById('rpmFill').style.width=(rpm*100)+'%';
-  setEngRpm(rpm);
-  if(speed>=88&&!timeTraveling) triggerTT();
+  const frac=0.28 + (speed/120)*0.72;
+  if(Math.abs(frac-lastRpmFrac)>0.02){
+    lastRpmFrac=frac;
+    document.getElementById('rpmFill').style.width=(frac*100)+'%';
+    setEngRpmBeep(speed/120);
+  }
+  if(speed>=88 && !timeTraveling) triggerTT();
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════
 //  PLUTONIUM
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════
+function getTotalPluto(){ return pluto.reduce((a,b)=>a+b,0); }
+
 function drainPluto(){
   for(let i=pluto.length-1;i>=0;i--){
-    if(pluto[i]>0){
-      pluto[i]=Math.max(0,pluto[i]-100);break;
-    }
+    if(pluto[i]>0){ pluto[i]=Math.max(0,pluto[i]-100); break; }
   }
   updatePlutoCells();
 }
 
 function updatePlutoCells(){
-  let totalFuel=pluto.reduce((a,b)=>a+b,0);
   pluto.forEach((p,i)=>{
     const fill=document.getElementById('cell'+i);
-    fill.style.height=p+'%';
-    fill.className='cell-fill';
-    if(p<=0)fill.style.height='0%';
-    else if(p<40) fill.className='cell-fill crit';
-    else if(p<70) fill.className='cell-fill warn';
+    const cellEl=fill.parentElement;
+    if(p<=0){
+      fill.style.height='0%';
+      fill.className='cell-fill empty-fill';
+      cellEl.classList.add('empty-cell');
+    } else {
+      fill.style.height=p+'%';
+      fill.className='cell-fill'+(p<40?' crit':p<70?' warn':'');
+      cellEl.classList.remove('empty-cell');
+    }
   });
-  const warn=document.getElementById('plutoWarn');
-  warn.style.display=totalFuel<=100?'block':'none';
+  document.getElementById('plutoWarn').style.display=getTotalPluto()<=100?'block':'none';
 }
 
 function reloadPluto(){
-  pluto=[100,100,100];
-  updatePlutoCells();
-  sndEnter();
+  pluto=[100,100,100]; updatePlutoCells(); sndEnter();
   const btn=document.querySelector('.reload-btn');
-  btn.style.color='#00ff55';btn.style.borderColor='#00ff55';
-  btn.textContent='✓ LOADED';
-  setTimeout(()=>{btn.style.color='';btn.style.borderColor='';btn.textContent='↺ RELOAD PLUTONIUM';},1500);
+  btn.style.color='#00ff55'; btn.style.borderColor='#00ff55'; btn.textContent='✓ LOADED';
+  setTimeout(()=>{ btn.style.color=''; btn.style.borderColor=''; btn.textContent='↺ RELOAD PLUTONIUM'; },1500);
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════
 //  TIME TRAVEL
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════
 function triggerTT(){
-  if(timeTraveling)return;
+  // Block if no plutonium
+  if(getTotalPluto()<=0){
+    const msg=document.getElementById('noplutoMsg');
+    msg.style.display='block';
+    sndErr();
+    setTimeout(()=>msg.style.display='none',2000);
+    // Force brake
+    speed=Math.min(speed,87); brakeOn=true; accelOn=false;
+    setTimeout(()=>brakeOn=false,1500);
+    return;
+  }
   timeTraveling=true;
-  stopAccel();brakeOn=false;
-  sndTT();
-  doLightning();
-  flashEl();
-
+  accelOn=false; brakeOn=false;
+  sndTT(); doLightning(); flashScreen();
   setTimeout(()=>{
     document.getElementById('ttYr').textContent=TD.dest.yr;
     document.getElementById('ttOverlay').style.display='flex';
   },500);
-
   setTimeout(()=>{
-    // Update times
-    const now=new Date();
     TD.dep={...TD.dest};
-    // "arrive" — keep present as new date in dest year
-    if(circuitsOn){setSegRow('gdDep',TD.dep);}
+    if(circuitsOn&&powerOn){ setSegRow('gdDest',TD.dest); setSegRow('gdDep',TD.dep); }
     drainPluto();
   },1400);
-
   setTimeout(()=>{
     document.getElementById('ttOverlay').style.display='none';
-    speed=0;timeTraveling=false;
+    speed=0; timeTraveling=false;
   },4500);
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════
+//  SPEEDOMETER
+// ═══════════════════════════════════
+const spdCv=document.getElementById('speedoCanvas');
+const spdCtx=spdCv.getContext('2d');
+
+function drawSpeedo(spd){
+  const W=220,H=130,cx=110,cy=118,R=95;
+  spdCtx.clearRect(0,0,W,H);
+  const startA=Math.PI*(1+1/6), sweep=Math.PI*240/180;
+
+  // Track
+  spdCtx.beginPath();spdCtx.arc(cx,cy,R,startA,startA+sweep);
+  spdCtx.strokeStyle='#1a1a1a';spdCtx.lineWidth=18;spdCtx.lineCap='round';spdCtx.stroke();
+  // Color zones
+  [{from:0,to:.5,c:'#003300'},{from:.5,to:.75,c:'#332200'},{from:.75,to:1,c:'#330000'}].forEach(z=>{
+    spdCtx.beginPath();spdCtx.arc(cx,cy,R,startA+sweep*z.from,startA+sweep*z.to);
+    spdCtx.strokeStyle=z.c;spdCtx.lineWidth=14;spdCtx.lineCap='butt';spdCtx.stroke();
+  });
+  // Ticks + labels
+  for(let mph=0;mph<=120;mph+=20){
+    const a=startA+sweep*(mph/120),cos=Math.cos(a),sin=Math.sin(a);
+    spdCtx.beginPath();spdCtx.moveTo(cx+cos*(R-9),cy+sin*(R-9));spdCtx.lineTo(cx+cos*(R+1),cy+sin*(R+1));
+    spdCtx.strokeStyle='#444';spdCtx.lineWidth=1.5;spdCtx.stroke();
+    spdCtx.fillStyle='#333';spdCtx.font='bold 9px Orbitron,monospace';spdCtx.textAlign='center';spdCtx.textBaseline='middle';
+    spdCtx.fillText(String(mph),cx+cos*(R-18),cy+sin*(R-18));
+  }
+  for(let mph=10;mph<120;mph+=20){
+    const a=startA+sweep*(mph/120),cos=Math.cos(a),sin=Math.sin(a);
+    spdCtx.beginPath();spdCtx.moveTo(cx+cos*(R-4),cy+sin*(R-4));spdCtx.lineTo(cx+cos*(R+1),cy+sin*(R+1));
+    spdCtx.strokeStyle='#252525';spdCtx.lineWidth=1;spdCtx.stroke();
+  }
+  // 88 marker
+  {const a=startA+sweep*(88/120),cos=Math.cos(a),sin=Math.sin(a);
+  spdCtx.save();spdCtx.shadowBlur=8;spdCtx.shadowColor='#ff2200';
+  spdCtx.beginPath();spdCtx.moveTo(cx+cos*(R-12),cy+sin*(R-12));spdCtx.lineTo(cx+cos*(R+2),cy+sin*(R+2));
+  spdCtx.strokeStyle='#ff2200';spdCtx.lineWidth=3;spdCtx.stroke();
+  spdCtx.fillStyle='#ff2200';spdCtx.font='bold 7px Orbitron,monospace';spdCtx.textAlign='center';spdCtx.textBaseline='middle';
+  spdCtx.fillText('88',cx+cos*(R-22),cy+sin*(R-22));spdCtx.restore();}
+  // Active arc
+  if(spd>0){
+    const frac=Math.min(spd/120,1);
+    const col=spd>=88?'#ff2200':spd>=60?'#ffaa00':'#00ff55';
+    spdCtx.save();spdCtx.shadowBlur=10;spdCtx.shadowColor=col;
+    spdCtx.beginPath();spdCtx.arc(cx,cy,R,startA,startA+sweep*frac);
+    spdCtx.strokeStyle=col;spdCtx.lineWidth=6;spdCtx.lineCap='round';spdCtx.stroke();spdCtx.restore();
+  }
+  // Needle
+  {const frac=Math.min(spd/120,1),a=startA+sweep*frac;
+  const col=spd>=88?'#ff2200':'#ff8800';
+  spdCtx.save();spdCtx.shadowBlur=12;spdCtx.shadowColor=col;
+  spdCtx.beginPath();spdCtx.moveTo(cx,cy);spdCtx.lineTo(cx+Math.cos(a)*(R-4),cy+Math.sin(a)*(R-4));
+  spdCtx.strokeStyle=col;spdCtx.lineWidth=2.5;spdCtx.lineCap='round';spdCtx.stroke();
+  spdCtx.beginPath();spdCtx.arc(cx,cy,5,0,Math.PI*2);spdCtx.fillStyle='#555';spdCtx.shadowBlur=0;spdCtx.fill();
+  spdCtx.beginPath();spdCtx.arc(cx,cy,2,0,Math.PI*2);spdCtx.fillStyle='#aaa';spdCtx.fill();spdCtx.restore();}
+}
+
+// ═══════════════════════════════════
+//  FLUX CAPACITOR
+// ═══════════════════════════════════
+const flxCv=document.getElementById('fluxCanvas');
+const flxCtx=flxCv.getContext('2d');
+let fluxT=0;
+
+function drawFlux(spd){
+  const W=140,H=90,cx=70,cy=55;
+  flxCtx.clearRect(0,0,W,H);
+  const pct=Math.min(spd/88,1);
+  const active=pct>0.05;
+  const col=pct>=1?'#ff2200':pct>0.5?'#ffaa00':'#ffcc00';
+  const arms=[270,30,150],armLen=30;
+  arms.forEach((deg,ai)=>{
+    const rad=deg*Math.PI/180;
+    const ex=cx+Math.cos(rad)*armLen,ey=cy+Math.sin(rad)*armLen;
+    flxCtx.save();
+    flxCtx.strokeStyle='#252520';flxCtx.lineWidth=7;flxCtx.lineCap='round';
+    flxCtx.beginPath();flxCtx.moveTo(cx,cy);flxCtx.lineTo(ex,ey);flxCtx.stroke();
+    if(active){
+      flxCtx.shadowBlur=8;flxCtx.shadowColor=col;flxCtx.strokeStyle=col;flxCtx.lineWidth=1.5;
+      flxCtx.beginPath();flxCtx.moveTo(cx,cy);
+      const nx=-Math.sin(rad),ny=Math.cos(rad);
+      for(let s=1;s<=6;s++){
+        const t=s/6,bx=cx+(ex-cx)*t,by=cy+(ey-cy)*t;
+        const off=Math.sin(fluxT*8+s*2+ai*2)*9*pct;
+        flxCtx.lineTo(bx+nx*off,by+ny*off);
+      }
+      flxCtx.stroke();flxCtx.shadowBlur=0;
+    }
+    flxCtx.shadowBlur=active?12:0;flxCtx.shadowColor=col;
+    flxCtx.beginPath();flxCtx.arc(ex,ey,5,0,Math.PI*2);
+    flxCtx.fillStyle=active?col:'#181810';flxCtx.fill();flxCtx.shadowBlur=0;
+    flxCtx.restore();
+  });
+  // Center
+  flxCtx.save();
+  flxCtx.shadowBlur=active?18:0;flxCtx.shadowColor=col;
+  flxCtx.beginPath();flxCtx.arc(cx,cy,9,0,Math.PI*2);
+  flxCtx.fillStyle=active?col:'#111';flxCtx.fill();
+  if(active){
+    flxCtx.beginPath();flxCtx.arc(cx,cy,4+Math.sin(fluxT*14)*2*pct,0,Math.PI*2);
+    flxCtx.fillStyle='#fff';flxCtx.fill();
+  }
+  flxCtx.shadowBlur=0;flxCtx.restore();
+  // Arc sparks between tips
+  if(pct>0.25){
+    arms.forEach((deg,ai)=>{
+      const r1=deg*Math.PI/180,r2=arms[(ai+1)%3]*Math.PI/180;
+      const x1=cx+Math.cos(r1)*armLen,y1=cy+Math.sin(r1)*armLen;
+      const x2=cx+Math.cos(r2)*armLen,y2=cy+Math.sin(r2)*armLen;
+      flxCtx.save();
+      flxCtx.shadowBlur=5;flxCtx.shadowColor=col;flxCtx.strokeStyle=col;
+      flxCtx.lineWidth=0.8;flxCtx.globalAlpha=0.35*pct*(0.5+0.5*Math.sin(fluxT*18+ai));
+      flxCtx.beginPath();flxCtx.moveTo(x1,y1);
+      for(let s=1;s<=7;s++){const t=s/7;flxCtx.lineTo(x1+(x2-x1)*t+(Math.random()-.5)*14*pct,y1+(y2-y1)*t+(Math.random()-.5)*14*pct);}
+      flxCtx.stroke();flxCtx.restore();
+    });
+  }
+}
+
+// ═══════════════════════════════════
 //  LIGHTNING + FLASH
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════
 function doLightning(){
   const cv=document.getElementById('lCanvas');
-  cv.width=window.innerWidth;cv.height=window.innerHeight;
-  cv.style.display='block';
-  const ctx=cv.getContext('2d');
-  let f=0;
+  cv.width=window.innerWidth;cv.height=window.innerHeight;cv.style.display='block';
+  const ctx=cv.getContext('2d');let f=0;
   const iv=setInterval(()=>{
     ctx.clearRect(0,0,cv.width,cv.height);
     if(f%2===0){bolt(ctx,cv.width,cv.height);bolt(ctx,cv.width,cv.height);}
@@ -901,33 +926,28 @@ function doLightning(){
   },40);
 }
 function bolt(ctx,W,H){
-  ctx.save();
-  ctx.strokeStyle=`hsl(${200+Math.random()*80},100%,${65+Math.random()*35}%)`;
+  ctx.save();ctx.strokeStyle=`hsl(${200+Math.random()*80},100%,${65+Math.random()*35}%)`;
   ctx.lineWidth=1+Math.random()*3;ctx.shadowBlur=20;ctx.shadowColor='#88aaff';
-  ctx.beginPath();
-  let x=Math.random()*W,y=0;ctx.moveTo(x,y);
+  ctx.beginPath();let x=Math.random()*W,y=0;ctx.moveTo(x,y);
   while(y<H){x+=(-90+Math.random()*180);y+=15+Math.random()*35;ctx.lineTo(x,y);}
   ctx.stroke();ctx.restore();
 }
-function flashEl(){
+function flashScreen(){
   const f=document.getElementById('flashEl');
-  f.style.opacity='1';
-  setTimeout(()=>f.style.opacity='0.4',70);
-  setTimeout(()=>f.style.opacity='0.9',130);
-  setTimeout(()=>f.style.opacity='0',320);
+  f.style.opacity='1';setTimeout(()=>f.style.opacity='0.4',70);
+  setTimeout(()=>f.style.opacity='0.9',130);setTimeout(()=>f.style.opacity='0',320);
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════
 //  INPUT
-// ═══════════════════════════════════════════════
-// 12 digits: MM DD YYYY HH MM
+// ═══════════════════════════════════
 function numPress(n){
-  if(!circuitsOn){sndErr();return;}
+  if(!circuitsOn||!powerOn){sndErr();return;}
   if(digits.length>=12)return;
   digits.push(String(n));updInp();sndClick();hiliteNk(String(n));
 }
-function bksp(){if(digits.length>0){digits.pop();updInp();sndClick();}}
-function clrInput(){digits=[];updInp();if(circuitsOn)sndClear();}
+function bksp(){ if(digits.length>0){digits.pop();updInp();sndClick();} }
+function clrInput(){ digits=[];updInp();if(circuitsOn&&powerOn)sndClear(); }
 function updInp(){
   const d=digits;
   const s=[
@@ -939,7 +959,7 @@ function updInp(){
     d[10]||'_',d[11]||'_',
   ].join('');
   const el=document.getElementById('inpDisp');
-  el.textContent=s;el.classList.toggle('empty',digits.length===0);
+  el.textContent=s; el.classList.toggle('empty',digits.length===0);
 }
 function hiliteNk(n){
   document.querySelectorAll('.nk').forEach(b=>{
@@ -947,8 +967,8 @@ function hiliteNk(n){
   });
 }
 function enterTime(){
-  if(!circuitsOn){sndErr();return;}
-  if(digits.length<12){while(digits.length<12)digits.push('0');}
+  if(!circuitsOn||!powerOn){sndErr();return;}
+  while(digits.length<12)digits.push('0');
   const m=parseInt(digits[0]+digits[1]);
   const dy=parseInt(digits[2]+digits[3]);
   const yr=parseInt(digits[4]+digits[5]+digits[6]+digits[7]);
@@ -958,67 +978,64 @@ function enterTime(){
   TD.dep={...TD.dest};
   TD.dest={mo:String(m).padStart(2,'0'),dy:String(dy).padStart(2,'0'),yr:String(yr),
            hr:String(hr%12||12).padStart(2,'0'),mn:String(mn).padStart(2,'0'),pm:hr>=12};
-  if(circuitsOn){setSegRow('gdDest',TD.dest);setSegRow('gdDep',TD.dep);}
+  setSegRow('gdDest',TD.dest); setSegRow('gdDep',TD.dep);
   digits=[];updInp();sndTimeSet();
   const r=document.getElementById('rowDest');
-  [0,80,160].forEach((ms,i)=>setTimeout(()=>r.style.opacity=i%2?'1':'0.1',ms));
+  [0,80,160].forEach((ms,i)=>setTimeout(()=>r.style.opacity=i%2?'1':'0.08',ms));
   setTimeout(()=>r.style.opacity='1',240);
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════
 //  KEYBOARD
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════
 document.addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT')return;
-  if(e.key>='0'&&e.key<='9'){numPress(parseInt(e.key));}
+  if(e.key>='0'&&e.key<='9') numPress(parseInt(e.key));
   else if(e.key==='Backspace'){e.preventDefault();bksp();}
-  else if(e.key==='Enter'){enterTime();}
-  else if(e.key==='Escape'||e.key==='Delete'){clrInput();}
+  else if(e.key==='Enter') enterTime();
+  else if(e.key==='Escape'||e.key==='Delete') clrInput();
   else if(e.key===' '){e.preventDefault();accelOn?stopAccel():startAccel();}
 });
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════
 //  MAIN LOOP
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════
 let lastT=0;
-function mainLoop(ts){
-  const dt=(ts-lastT)/1000;lastT=ts;
+function loop(ts){
+  const dt=(ts-lastT)/1000; lastT=ts;
   fluxT+=dt;
-
   driveTick();
   drawSpeedo(speed);
   drawFlux(speed);
-
   // Speed digital
-  const spdEl=document.getElementById('speedDigital');
   const spd=Math.round(speed);
-  spdEl.textContent=spd;
-  spdEl.style.color=spd>=88?'#ff2200':spd>=60?'#ffaa00':'#fff';
-  spdEl.style.textShadow=spd>=88?'0 0 20px #ff2200':spd>=60?'0 0 14px #ffaa00':'0 0 10px #fff';
-
+  const sdEl=document.getElementById('speedDigital');
+  sdEl.textContent=spd;
+  sdEl.style.color=spd>=88?'#ff2200':spd>=60?'#ffaa00':'#fff';
+  sdEl.style.textShadow=spd>=88?'0 0 20px #ff2200':spd>=60?'0 0 14px #ffaa00':'0 0 10px #fff';
   // Flux status
   const fs=document.getElementById('fluxStatus');
   if(speed>=88){fs.textContent='FLUX ENGAGED';fs.className='flux-status active';}
-  else if(speed>20){fs.textContent=`CHARGING ${Math.round(speed/88*100)}%`;fs.className='flux-status active';}
+  else if(speed>5){fs.textContent=`CHARGING ${Math.round(speed/88*100)}%`;fs.className='flux-status active';}
   else{fs.textContent='STANDBY';fs.className='flux-status';}
-
-  if(circuitsOn) drawClock();
-
-  requestAnimationFrame(mainLoop);
+  // Clock + panel readout
+  updatePresent();
+  updateSwSpeed();
+  requestAnimationFrame(loop);
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════
 //  INIT
-// ═══════════════════════════════════════════════
-buildSegRow('gdDest','dest');
-buildSegRow('gdDep','dep');
-resizeDotCanvas();
-window.addEventListener('resize',resizeDotCanvas);
-updInp();
-drawSpeedo(0);
-drawFlux(0);
-updatePlutoCells();
-requestAnimationFrame(mainLoop);
+// ═══════════════════════════════════
+buildSegRow('gdDest'); buildSegRow('gdDep');
+// gdPres is a plain seg-wrap div in HTML, we build it too
+buildSegRow('gdPres');
+// Start with power OFF
+document.body.classList.add('poweroff');
+pluto=[100,100,100]; updatePlutoCells();
+updInp(); drawSpeedo(0); drawFlux(0);
+updatePresent(); // show clock immediately
+requestAnimationFrame(loop);
 </script>
 </body>
 </html>
